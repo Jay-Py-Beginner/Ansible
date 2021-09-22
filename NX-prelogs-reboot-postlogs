@@ -1,0 +1,88 @@
+---
+- name: Show commands list output to the file
+  hosts: nexus1
+  gather_facts: false
+  connection: local
+  vars:
+   command_list:
+        # - show etherchannel summary
+          - show run
+          - show mac address-table
+        # - sh switch stack-ports
+        # - sh switch
+        # - show environment all
+        # - show ip ospf int brief
+        # - show ip ospf neigh
+          - show cdp neighbors detail
+          - show version
+        # - show license usage
+        # - show clock
+        # - show users
+        # - show boot
+        # - show int status | inc connected
+        # - show arp
+          - show ip interface brief
+
+  tasks:
+   - name: Run the SHOW commands and save output
+     nxos_command:
+      commands: "{{ command_list }}"
+     register: showoutput
+
+   - name: "Put all the files together into one nice text file"
+     template:
+      src: template.j2
+      dest: "./backups/{{ inventory_hostname }}-prelogs.txt"
+
+   - name: reboot nexus switch
+     nxos_reboot:
+      confirm: true
+
+     register: print_output
+   - debug: var=print_output
+
+   - name: Wait for device to come back online
+     wait_for:
+       port: 22
+       timeout: 300
+       delay: 60
+       host: "{{ inventory_hostname }}"
+
+   - name: REBOOT IN PROGRESS - WAITING FOR DEVICE TO COME BACK ONLINE
+     wait_for:
+       port: 22
+       state: started
+       timeout: 300
+       delay: 60
+       host: "{{ inventory_hostname }}"
+
+     vars:
+      command_list:
+        # - show etherchannel summary
+          - show run
+          - show mac address-table
+        # - sh switch stack-ports
+        # - sh switch
+        # - show environment all
+        # - show ip ospf int brief
+        # - show ip ospf neigh
+          - show cdp neighbors detail
+          - show version
+        # - show license usage
+        # - show clock
+        # - show users
+        # - show boot
+        # - show int status | inc connected
+        # - show arp
+          - show ip interface brief
+
+
+   - name: Run the SHOW commands and save output
+     nxos_command:
+      commands: "{{ command_list }}"
+     register: showoutput
+
+   - name: "Put all the files together into one nice text file"
+     template:
+      src: template.j2
+      dest: "./backups/{{ inventory_hostname }}-postlogs.txt"
