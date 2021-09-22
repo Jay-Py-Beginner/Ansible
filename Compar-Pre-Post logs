@@ -1,0 +1,12 @@
+---
+- name: Compar pre post logs
+  hosts: nexus1
+
+  tasks:
+  - name: Validate pre post
+    copy:
+     src: ./backups/nx1-prelogs.txt
+     dest: ./backups/nx1-postlogs.txt
+    check_mode: yes
+    diff: yes
+
